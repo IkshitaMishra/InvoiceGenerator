@@ -15,5 +15,5 @@ In process:
 
   -> E-Mail 
   
-     Company prints and attach the pdf in e-mail to client's e-mail address.
+     Company prints and attach the pdf in e-mail to client's  address.
 
