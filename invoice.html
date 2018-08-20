@@ -1,0 +1,618 @@
+<!DOCTYPE html>
+<html lang="en">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
+<script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN" crossorigin="anonymous"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js" integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q" crossorigin="anonymous"></script>
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js" integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl" crossorigin="anonymous"></script>
+<script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.6.9/angular.min.js"></script> 
+<script type="text/javascript" src="https://rawgit.com/betsol/angular-input-date/master/src/angular-input-date.js"></script>
+<link href="https://fonts.googleapis.com/css?family=Abel|Dosis:800" rel="stylesheet">
+
+  
+<style type="text/css">
+	.thumb{
+    width:auto;
+    height:auto;
+    margin:5px;
+    float:left;
+}
+	.sign{
+    width:15rem;
+    height:8rem;
+    margin:5px;
+    float:left;
+}
+.modal-lg {
+    max-width: 70% ;
+}
+#btnPrint,
+#btnSend{
+    display: inline-block;
+    vertical-align: top;
+}
+	span{font-family: 'Dosis', sans-serif;
+ font-weight: bold;font-size: 2rem;}
+ th{font-family: 'Dosis', sans-serif;
+ font-weight: bold;font-size: 1.2rem;}
+
+ @media print {
+            body * {
+                visibility: hidden;
+            }
+
+            .print-content * {
+                visibility: visible;
+                overflow: visible;
+            }
+
+            #mainPage * {
+                display: none;
+            }
+
+            .modal {
+                position: absolute;
+                left: 0;
+                top: 0;
+                margin: 0;
+                padding: 0;
+                min-height: 550px;
+                visibility: visible;
+                /**Remove scrollbar for printing.**/
+                overflow: visible !important;
+            }
+
+            .modal-dialog {
+                visibility: visible !important;
+                /**Remove scrollbar for printing.**/
+                overflow: visible !important;
+            }
+
+            li {
+                page-break-after: auto;
+            }
+            .onPrint {
+                display:none;
+            }
+
+            #btnPrint,
+			#btnSend{
+			    display: none;
+			    
+			}
+        }
+</style> 
+<body ng-app="myApp" ng-controller="myCtrl">
+	<div class="modal fade" id=modalinfo tabindex="-1" role="dialog" aria-hidden="true">
+		<div class="modal-dialog" role="document">
+			<div class="modal-content">
+				<div class="modal-header">
+					<h2 class="modal-title" id="modaltitle"> Free Invoice Generator</h2>
+				</div>
+				<div class="modal-body">This is a free invoice generator. You can upload your logo of company and signature of Manager. This application includes addition removal of products, their cost and quantity. It has feature of printing and sending the invoice via email as pdf. This is free for first 30 use. Later you need to subscribe to the plan of $10 per month.</div>
+				<div class="modal-footer">
+					<button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+				</div>
+			</div>
+		</div>	
+	</div>
+	<div class="container-fluid"  style="width: 100%;">
+		<div class="card">
+			<div class="card-header">
+				<div class="row">
+					<div class="col-md-3 col-xs-offset-1" style="font-family: 'Dosis', sans-serif;font-size: 1.5rem;">
+				Create Your Own Invoice!
+					</div>
+					<div class="col-md-9"  >
+						<button type="button" class="btn btn-dark  btn-sm" data-toggle="modal" data-target="#modalinfo">ReadMe!</button>
+					</div>
+				</div>
+			</div>
+			<div class="card-body text-center" style="margin: 15PX;">
+				<div class="card" style="margin: 15PX;">
+					<div class="row" style="margin: 2rem;">
+							<div class="col-md-6">
+								<div class="row">
+									<div class="col-md-4" ng-init="myVar = 'https://cdn4.iconfinder.com/data/icons/colicon/24/close_delete-128.png'" >
+										<h5 class="h3 text-left" style="font-size: 55px;font-family: 'Abel', sans-serif;">LOGO:</h5>
+										 <div ng-repeat="step in stepsModel" >
+										        <img class="thumb" ng-src="{{step}}" />
+										    </div>
+										    <br>
+										    <input type='file' ng-model="display"  ng-model-instant onchange="angular.element(this).scope().imageUpload(this)" accept="image/png, image/jpeg" style="margin: 20px" />
+										    <img ng-src="{{myVar}}"  ng-hide="stepsModel.length == 0" ng-click="clearAll()" style="width:20px;height:20px;"/>
+										
+									</div>
+								</div>
+							</div>
+							<div class="col-md-6" >
+								<form  name="fromForm">
+  									<div class="form-group" style="margin: 14px;">
+  										<div class="input-group mb-3" style="height: 2rem;" >
+										  <div class="input-group-prepend" >
+										    <span class="input-group-text" style="background-color: black;color: white">Company Name:</span>
+										  	</div>
+											<input type="text" class="form-control" name="fromname" ng-model="fromname" placeholder="Enter Company Name" size="15" required>
+											<span ng-show="fromForm.fromname.$touched && fromForm.fromname.$invalid" ><b>Please fill the name!</b></span>
+										</div>
+										<div class="input-group mb-2" style="height: 2rem;" >
+										  <div class="input-group-prepend">
+										    <span class="input-group-text" style="background-color: black;color: white">Address (Line 1):</span>
+										  	</div>
+											<input type="textarea" class="form-control" name="add1" ng-model="add1" placeholder="Line-1 (required)" size="15" required>
+											<span ng-show="fromForm.add1.$touched && fromForm.add1.$invalid" "><b>Please fill the address!</b></span>
+										</div>
+										<div class="input-group mb-3" style="height: 2rem;">
+										  <div class="input-group-prepend">
+										    <span class="input-group-text" style="background-color: black;color: white">Address (Line 2):</span>
+										  	</div>
+											<input type="textarea" class="form-control" name="add2" ng-model="add2" placeholder="Line-2 (Optional)" size="15" >
+										</div>
+										<div class="input-group mb-3" style="height: 2rem;">
+										   <div class="input-group-prepend">
+										    <span class="input-group-text" style="background-color: black;color: white">City</span>
+										  	</div>
+											<select ng-model="cityname"><option ng-repeat="x in city">{{x.city}}</option></select>
+										</div>
+										<div class="input-group mb-3" style="height: 2rem;">
+										   <div class="input-group-prepend">
+										    <span class="input-group-text" style="background-color: black;color: white">Zip Code:</span>
+										  	</div>
+											<input type="number" class="form-control" name="zip" ng-model="zip" placeholder="Enter Pin-Code" size="15" required>
+											<span ng-show="fromForm.zip.$touched && fromForm.zip.$invalid"><b>Please fill zip code!</b></span>
+										</div>
+										<div class="input-group mb-3" style="height: 2rem;">
+										   <div class="input-group-prepend">
+										    <span class="input-group-text" style="background-color: black;color: white">State</span>
+										  	</div>
+											<select ng-model="statename" ><option ng-repeat="x in state">{{x.name}}</option></select>
+										</div>
+										<div class="input-group mb-3" style="height: 2rem;">
+										  <div class="input-group-prepend">
+										    <span class="input-group-text" style="background-color: black;color: white">Contact Number:</span>
+										  	</div>
+											<input type="tel" class="form-control" name="num" ng-model="num" placeholder="Enter Contact Number:" size="15" required>
+											<span ng-show="fromForm.num.$touched && fromForm.num.$invalid"><b>Please fill the contact number!</b></span>
+										</div>
+										<div class="input-group mb-3" style="height: 2rem;">
+										  <div class="input-group-prepend">
+										    <span class="input-group-text" style="background-color: black;color: white">E-mail ID:</span>
+										  	</div>
+											<input type="email" class="form-control" name="eid" ng-model="eid" placeholder="Enter E-mail ID:" size="15" required>
+											<span ng-show="fromForm.eid.$touched && fromForm.eid.$invalid"><b>Please fill valid E-mail ID!</b></span>
+										</div>
+									</div>
+								</form>
+							</div>
+
+					</div>
+					<div class="row" style="margin: 2rem;">
+						<div class="col-md-6" >
+							<h5 class="h3 text-left" style="font-size: 55px;font-family: 'Abel', sans-serif;">CLIENT:</h5>
+								<form  name="toForm">
+  									<div class="form-group" style="margin: 20px;">
+  										<div class="input-group mb-3" style="height: 2rem;">
+										  <div class="input-group-prepend">
+										    <span class="input-group-text" style="background-color: black;color: white">Company Name:</span>
+										  	</div>
+											<input type="text" class="form-control" name="toname" ng-model="toname" placeholder="Enter Company Name" size="15" required>
+											<span ng-show="toForm.toname.$touched && toForm.toname.$invalid" ><b>Please fill the name!</b></span>
+										</div>
+										<div class="input-group mb-2" style="height: 2rem;" >
+										  <div class="input-group-prepend">
+										    <span class="input-group-text" style="background-color: black;color: white">Address (Line 1):</span>
+										  	</div>
+											<input type="textarea" class="form-control" name="toadd1" ng-model="toadd1" placeholder="Line-1 (required)" size="15" required>
+											<span ng-show="toForm.toadd1.$touched && toForm.toadd1.$invalid" "><b>Please fill the address!</b></span>
+										</div>
+										<div class="input-group mb-3" style="height: 2rem;">
+										  <div class="input-group-prepend">
+										    <span class="input-group-text" style="background-color: black;color: white">Address (Line 2):</span>
+										  	</div>
+											<input type="textarea" class="form-control" name="toadd2" ng-model="toadd2" placeholder="Line-2 (Optional)" size="15" >
+										</div>
+										<div class="input-group mb-3" style="height: 2rem;">
+										   <div class="input-group-prepend">
+										    <span class="input-group-text" style="background-color: black;color: white">City</span>
+										  	</div>
+											<select ng-model="tocityname"><option ng-repeat="y in tocity">{{y.city}}</option></select>
+										</div>
+										<div class="input-group mb-3" style="height: 2rem;">
+										   <div class="input-group-prepend">
+										    <span class="input-group-text" style="background-color: black;color: white">Zip Code:</span>
+										  	</div>
+											<input type="number" class="form-control" name="tozip" ng-model="tozip" placeholder="Enter Pin-Code" size="15" required>
+											<span ng-show="toForm.tozip.$touched && toForm.tozip.$invalid"><b>Please fill zip code!</b></span>
+										</div>
+										<div class="input-group mb-3" style="height: 2rem;">
+										   <div class="input-group-prepend">
+										    <span class="input-group-text" style="background-color: black;color: white">State</span>
+										  	</div>
+											<select ng-model="tostatename" ><option ng-repeat="y in tostate">{{y.name}}</option></select>
+										</div>
+										<div class="input-group mb-3" style="height: 2rem;">
+										  <div class="input-group-prepend">
+										    <span class="input-group-text" style="background-color: black;color: white">Contact Number:</span>
+										  	</div>
+											<input type="tel" class="form-control" name="tonum" ng-model="tonum" placeholder="Enter Contact Number:" size="15" required>
+											<span ng-show="toForm.tonum.$touched && toForm.tonum.$invalid"><b>Please fill the contact number!</b></span>
+										</div>
+										<div class="input-group mb-3" style="height: 2rem;">
+										  <div class="input-group-prepend">
+										    <span class="input-group-text" style="background-color: black;color: white">E-mail ID:</span>
+										  	</div>
+											<input type="email" class="form-control" name="toeid" ng-model="toeid" placeholder="Enter E-mail ID:" size="15" required>
+											<span ng-show="toForm.toeid.$touched && toForm.toeid.$invalid" ><b>Please fill valid E-mail ID!</b></span>
+										</div>
+									</div>
+							</form>
+						</div>
+						<div class="col-md-6" >
+							<div style="margin: 1rem">
+										<form name="invoicedetails">
+										<h4 class="h1 text-left" style="font-size: 55px;font-family: 'Abel', sans-serif;">INVOICE DETAILS</h4><br>
+										<h4 class="h4 text-left" style="font-size: 25px;font-family: 'Abel', sans-serif;" ><b>Invoice #:</b></h4>
+											<input type="number" class="form-control" name="invid" ng-model="invid" placeholder="Enter Invoice Number:" required>
+											<span ng-show="invoicedetails.tonum.$touched && invoicedetails.tonum.$invalid"><b>Please fill invoice number!</b></span>
+										<h4 class="h4 text-left"  style="font-size: 25px;font-family: 'Abel', sans-serif;"><b>Invoice Date</b></h4>
+											<div class="control">
+               										 <input id="date-birth" class="form-control" type="date" ng-model="dateInv">
+            								</div>
+										<h4 class="h4 text-left" style="font-size: 25px;font-family: 'Abel', sans-serif;" ><b>Invoice Due Date</b></h4>
+											<div class="control">
+               										 <input id="date-birth" class="form-control" type="date" ng-model="dateDue">
+            								</div>
+										<h4 class="h4 text-left" class="h1" style="font-size: 25px;font-family: 'Abel', sans-serif;" ><b>Invoice Total:  {{getTotal() +shipping+tax+disc}}</h4>
+											
+										</form>
+							</div>
+						</div>
+					</div>
+					<div class="row" style="margin: 1rem;">
+							<div class="col-md-5">
+								<div class="card" style="margin: 35px">
+									<form name="itemform" role="form" ng-submit="addRow()" style="margin: 10px">
+										<h5 class="text-left" style="font-size: 55px;font-family: 'Abel', sans-serif;">ITEM DETAILS:</h5>
+										<br>
+										<div class="input-group mb-3" style="height: 2rem;">
+										  <div class="input-group-prepend">
+										    <span class="input-group-text" style="background-color: black;color: white" style="font-size: 25px;font-family: 'Abel', sans-serif;">Item:</span>
+										  	</div>
+											<input type="textarea" class="form-control" name="itemname" ng-model="itemname" placeholder="Add Item!" size="15" >
+										</div>
+										<div class="input-group mb-3" style="height: 2rem;">
+										   <div class="input-group-prepend">
+										    <span class="input-group-text" style="background-color: black;color: white"  style="font-size: 25px;font-family: 'Abel', sans-serif;">Quantity:</span>
+										  	</div>
+											<select ng-model="quant"  class="text-left" ng-options="n for n in [] | range:1:30" ></select>
+										</div>
+										<div class="input-group mb-3" style="height: 2rem;">
+										   <div class="input-group-prepend">
+										    <span class="input-group-text" style="background-color: black;color: white" style="font-size: 25px;font-family: 'Abel', sans-serif;">Unit Price:</span>
+										  	</div>
+											<input type="number" class="text-left"  name="unitp" ng-model="unitp" style="width: 10rem" placeholder="Per item!"/>
+										</div>
+									
+										<input type="submit" value="Add Item" class="btn btn-dark"/>
+									</form>
+								</div>	
+								<div class="card" style="margin: 35px">
+									<div class="col-md-10" ng-init="mySign = 'https://cdn4.iconfinder.com/data/icons/colicon/24/close_delete-128.png'" >
+										<h5 class="text-left" style="font-size: 55px;font-family: 'Abel', sans-serif;">SIGNATURE:</h5>
+										<br>
+										 <div ng-repeat="sign in signature" >
+										        <img class="sign" ng-src="{{sign}}" />
+										    </div>
+										    <br>
+										    <input type='file' ng-model="signdisplay"  ng-model-instant onchange="angular.element(this).scope().signUpload(this)" accept="image/png, image/jpeg" style="margin: 20px" />
+										    <img ng-src="{{mySign}}"  ng-hide="signature.length == 0" ng-click="signclearAll()" style="width:20px;height:20px;"/>
+										
+									</div>
+								</div>
+							</div>
+							<div class="col-md-7" ng-init="delpic='https://image.flaticon.com/icons/png/128/61/61391.png'">
+								<br>
+								<table class="table table-striped"  style="margin-right: 20px" >
+									  <thead class="thead-dark">
+									    <tr>
+									      <th scope="col">Description</th>
+									      <th scope="col">Quantity</th>
+									      <th scope="col">Unit Price</th>
+									      <th scope="col">Amount</th>
+									      <th scope="col"></th>
+									    </tr>
+									  </thead>
+									  <tbody>
+									    <tr ng-repeat="prod in products">
+									     <td class="text-left" style="font-size: 22px;font-family: 'Abel', sans-serif;">{{prod.itemname}}</td>
+									      <td class="text-left" style="font-size: 22px;font-family: 'Abel', sans-serif;">{{prod.quant}}</td>
+									      <td class="text-left" style="font-size: 22px;font-family: 'Abel', sans-serif;">{{prod.unitp}}</td>
+									      <td  class="text-left" ng-model="amt">{{"$" +prod.quant*prod.unitp}}</td>
+									      <td  class="text-left" ng-model="del"><img ng-src="{{delpic}}" ng-click="removeItem($index)" style="width: 2rem;height: 1.5rem;cursor: pointer;" /></td>
+									    </tr>
+									   
+									   </tbody>
+								</table>
+								<br>
+							<div style="margin-left: 25rem">
+								<div class="input-group">
+									<p class="text-right"  style="font-size: 22px;font-family: 'Abel', sans-serif;">Shippng:  </p>&nbsp;&nbsp;
+									    <span class="input-group-btn">
+									        <button type="button" class="btn btn-dark btn-sm" ng-hide="addShip" ng-click="addShip = true">Add</button>
+									        	<form ng-show="addShip" ng-submit="remShip()">
+												<b>$ </b><input type="number" name="shipping" ng-model="shipping"  style="width: 5rem" />
+												<button  type="submit" class="btn btn-dark btn-sm" value="Remove">Remove</button>
+											    </form>
+									    </span>
+								</div>
+								<div class="input-group">
+										      <p class="text-right"  style="font-size: 22px;font-family: 'Abel', sans-serif;">Tax:  </p>&nbsp;&nbsp;
+										       <span class="input-group-btn">
+										       <button type="button" class="btn btn-dark btn-sm" ng-hide="addTax" ng-click="addTax = true">Add</button>
+										        <form ng-show="addTax" ng-submit="remTax()">
+													<b>$ </b><input type="number" name="tax" ng-model="tax" style="width: 6rem" >
+													<button  type="submit" class="btn btn-dark btn-sm" value="Remove" sty>Remove</button>
+											    </form>
+										      </span>
+								</div>		
+								<div class="input-group">
+										      <p class="text-right"  style="font-size: 22px;font-family: 'Abel', sans-serif;">Discount:  </p>&nbsp;&nbsp;
+										      <span class="input-group-btn">
+										       <button type="button" class="btn btn-dark btn-sm" ng-hide="addDisc" ng-click="addDisc = true">Add</button>
+										        <form ng-show="addDisc" ng-submit="remDisc()">
+													<b>$ </b><input type="number" name="disc" ng-model="disc" style="width: 4.5rem"  >
+													<button  type="submit" class="btn btn-dark btn-sm" value="Remove" >Remove</button>
+											    </form>
+										</span>
+								</div>									   
+								<div class="input-group">
+									<p class="text-right" name="totalamt" ng-model="totalamt" style="font-size: 22px;font-family: 'Abel', sans-serif;"><b>Total: {{getTotal() +shipping+tax-disc}}</b></p>&nbsp;&nbsp;
+								</div>
+							</div>
+							</div>
+
+					</div>
+				
+					<div class="row">
+						<button class="text-center btn btn-dark" data-toggle="modal" data-target="#previewmodalinfo" style="margin-left:35rem">Preview</button>
+					</div>
+					<br>
+				</div>
+			</div>
+			<div class="card-footer text-muted text-center">
+			<p>&copy;ijmishra@usc.edu<p>
+			</div>
+		</div>
+	</div>
+</body>
+	<div class="modal fade" id=previewmodalinfo tabindex="-1" role="dialog" aria-hidden="true">
+		<div class="modal-dialog modal-lg print-content" role="document" >
+			<div class="modal-content">
+				<div class="modal-header">
+					<h3 class="modal-title onPrint" id="modaltitle">Invoice Generated!</h3>
+				</div>
+				<div class="modal-body">
+
+				<div class="card">
+					<div class="card" id="savearea">
+					<div class="row" style="margin: 20px">
+							<div class="col-md-6" >
+						
+									<div ng-repeat="step in stepsModel"  >
+										   <img class="thumb" ng-src="{{step}}" />
+									</div>
+								
+							</div>
+							<div class="col-md-6" >
+								
+  									<h5 style="font-size: 22px;font-family: 'Abel', sans-serif;">{{fromname}}</h5>
+  									<h5 style="font-size: 22px;font-family: 'Abel', sans-serif;">{{add1}}</h5>
+  									<h5 style="font-size: 22px;font-family: 'Abel', sans-serif;">{{add2}}</h5>
+  									<h5 style="font-size: 22px;font-family: 'Abel', sans-serif;">{{cityname}}</h5>
+  									<h5 style="font-size: 22px;font-family: 'Abel', sans-serif;">{{zip}}</h5>
+  									<h5 style="font-size: 22px;font-family: 'Abel', sans-serif;">{{statename}}</h5>
+  									<h5 style="font-size: 22px;font-family: 'Abel', sans-serif;">{{num}}</h5>
+  									<h5 style="font-size: 22px;font-family: 'Abel', sans-serif;">{{eid}}</h5>
+										
+							</div>
+								
+					</div>
+
+					
+					<div class="row" style="margin: 20px">
+						<div class="col-md-6" >
+							<h5 class="h3 text-left" style="font-size: 55px;font-family: 'Abel', sans-serif;">&nbsp;&nbsp;CLIENT:</h5>
+  									<h5 style="font-size: 22px;font-family: 'Abel', sans-serif;">{{toname}}</h5>
+  									<h5 style="font-size: 22px;font-family: 'Abel', sans-serif;">{{toadd1}}</h5>
+  									<h5 style="font-size: 22px;font-family: 'Abel', sans-serif;">{{toadd2}}</h5>
+  									<h5 style="font-size: 22px;font-family: 'Abel', sans-serif;">{{tocityname}}</h5>
+  									<h5 style="font-size: 22px;font-family: 'Abel', sans-serif;">{{tozip}}</h5>
+  									<h5 style="font-size: 22px;font-family: 'Abel', sans-serif;">{{tostatename}}</h5>
+  									<h5 style="font-size: 22px;font-family: 'Abel', sans-serif;">{{tonum}}</h5>
+  									<h5 style="font-size: 22px;font-family: 'Abel', sans-serif;"s>{{toeid}}</h5>
+								
+						</div>
+						<div class="col-md-6" >
+							<div style="margin-right: 20px">
+										
+										
+										<h4 class="h1 text-left" style="font-size: 55px;font-family: 'Abel', sans-serif;">INVOICE</h4><br>
+										<h4 class="h4 text-left" style="font-size: 25px;font-family: 'Abel', sans-serif;"><b>Invoice #:</b></h4>
+											{{invid}}
+										<h4 class="h4 text-left" style="font-size: 25px;font-family: 'Abel', sans-serif;" ><b>Invoice Date</b></h4>
+											{{dateInv}}
+										<h4 class="h4 text-left" style="font-size: 25px;font-family: 'Abel', sans-serif;"><b>Invoice Due Date</b></h4>
+											{{dateDue}}
+										<h4 class="h4 text-left" class="h1" ><b>Invoice Total:  {{getTotal() +shipping+tax+disc}}</h4>
+											
+										
+							</div>
+						</div>
+					</div>
+					<div class="row" style="width: 48rem">
+						<table class="table table-striped" style="margin-left: 25px"  >
+									  <thead class="thead-dark">
+									    <tr>
+									      <th scope="col" >Description</th>
+									      <th scope="col">Quantity</th>
+									      <th scope="col">Unit Price</th>
+									      <th scope="col">Amount</th>
+									      <th scope="col"></th>
+									    </tr>
+									  </thead>
+									  <tbody>
+									    <tr ng-repeat="prod in products">
+									     <td style="font-size: 22px;font-family: 'Abel', sans-serif;">{{prod.itemname}}</td>
+									      <td style="font-size: 22px;font-family: 'Abel', sans-serif;">{{prod.quant}}</td>
+									      <td style="font-size: 22px;font-family: 'Abel', sans-serif;">{{prod.unitp}}</td>
+									      <td ng-model="amt">{{"$" +prod.quant*prod.unitp}}</td>
+									      <td></td>
+									        </tr>
+									   
+									   </tbody>
+						</table>
+								<br>
+							<div style="margin-left: 30rem">
+									<h5 style="font-size: 22px;font-family: 'Abel', sans-serif;">Shipping:  {{shipping}}</h5>
+  									<h5 style="font-size: 22px;font-family: 'Abel', sans-serif;">Tax (VAT):  {{tax}}</h5>
+  									<h5 style="font-size: 22px;font-family: 'Abel', sans-serif;">Discount:  {{disc}}</h5>
+  									<h5 style="font-size: 22px;font-family: 'Abel', sans-serif;">Total:  {{getTotal() +shipping+tax-disc}}</h5>
+								
+							</div>
+						</div>
+						<div class="row" style="margin-left: 35rem">
+							<div ng-repeat="sign in signature" >
+								<img class="sign" ng-src="{{sign}}" />
+							</div>
+						</div>
+					</div>
+					<br>
+					<div class="row">
+					    <div class="col-sm-12 text-center">
+					        <button id="btnPrint" class="btn btn-dark btn-md center-block " Style="width: 120px;"   data-ng-click="onprint()" >Print Invoice</button>
+					        <button id="btnSend" class="btn btn-dark btn-md center-block "   Style="width: 120px;" >Save PDF</button>
+					     </div>
+					</div>
+					<br>
+				</div>
+				</div>
+				<div class="modal-footer">
+					<button type="button" class="btn btn-secondary onPrint" data-dismiss="modal">Close</button>
+				</div>
+			</div>
+		</div>	
+	</div>
+
+<script>
+var app = angular.module('myApp', ['ngInputDate']);
+app.controller('myCtrl', function($scope,$http) {
+  $http.get("https://gist.githubusercontent.com/tvpmb/4734703/raw/b54d03154c339ed3047c66fefcece4727dfc931a/US%2520State%2520List")
+  .then(function(response) {
+      $scope.state = response.data;
+  });
+    $http.get("https://gist.githubusercontent.com/Miserlou/c5cd8364bf9b2420bb29/raw/2bf258763cdddd704f8ffd3ea9a3e81d25e2c6f6/cities.json")
+  .then(function(response) {
+      $scope.city = response.data;
+  });
+   $http.get("https://gist.githubusercontent.com/tvpmb/4734703/raw/b54d03154c339ed3047c66fefcece4727dfc931a/US%2520State%2520List")
+  .then(function(response) {
+      $scope.tostate = response.data;
+  });
+    $http.get("https://gist.githubusercontent.com/Miserlou/c5cd8364bf9b2420bb29/raw/2bf258763cdddd704f8ffd3ea9a3e81d25e2c6f6/cities.json")
+  .then(function(response) {
+      $scope.tocity = response.data;
+  });
+  $scope.dateInv = new Date(2014, 3, 19);
+  $scope.dateDue = new Date(2014, 3, 19);
+  $scope.stepsModel = [];
+  $scope.display = $scope.stepsModel[$scope.stepsModel.length - 1];
+    $scope.clearAll = function () {
+        $scope.display = '';
+        $scope.stepsModel = [];
+    }
+    $scope.imageUpload = function(element){
+        var reader = new FileReader();
+        reader.onload = $scope.imageIsLoaded;
+        reader.readAsDataURL(element.files[0]);
+    }
+
+    $scope.imageIsLoaded = function(e){
+        $scope.$apply(function() {
+            $scope.stepsModel.push(e.target.result);
+        });
+    }
+
+  $scope.signature = [];
+  $scope.signdisplay = $scope.signature[$scope.signature.length - 1];
+    $scope.signclearAll = function () {
+        $scope.signdisplay = '';
+        $scope.signature = [];
+    }
+    $scope.signUpload = function(element){
+        var reader = new FileReader();
+        reader.onload = $scope.signIsLoaded;
+        reader.readAsDataURL(element.files[0]);
+    }
+
+    $scope.signIsLoaded = function(e){
+        $scope.$apply(function() {
+            $scope.signature.push(e.target.result);
+        });
+    }
+
+    $scope.products = [];
+$scope.addRow = function(){		
+	$scope.products.push({ 'itemname':$scope.itemname, 'quant': $scope.quant, 'unitp':$scope.unitp,'amt':$scope.amt, 'del': $scope.del });
+	$scope.itemname='';
+	$scope.quant='';
+	$scope.unitp='';
+	$scope.amt='';
+	$scope.del='';
+};
+   
+
+  $scope.removeItem = function (x) {
+          
+        $scope.products.splice(x, 1);
+    };
+
+    $scope.getTotal = function(){
+    var total = 0;
+    for(var i = 0; i < $scope.products.length; i++){
+        var prod = $scope.products[i];
+        total += (prod.quant * prod.unitp);
+    }
+    return total;
+}
+     // init showForm to false;
+    $scope.addShip = false;
+    $scope.remShip = function() {
+   $scope.addShip = false;
+   $scope.amt = 0;
+    };
+     $scope.remTax = function() {
+   $scope.addTax = false;
+   $scope.amt = 0;
+    };
+     $scope.remDisc = function() {
+   $scope.addDisc = false;
+   $scope.amt=0;
+    };
+     $scope.onprint = function () { 
+            window.print();
+       
+        }
+
+});
+app.filter('range',function(){
+	return function(input,min,max){
+		min=parseInt(min);
+		max=parseInt(max);
+		for(var i=min;i<max;i++)
+			input.push(i);
+		return input;
+	};
+});
+</script>
+</html>
